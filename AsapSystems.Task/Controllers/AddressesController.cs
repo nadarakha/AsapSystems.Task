@@ -7,26 +7,27 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using AsapSystems.Task.Models;
 using Microsoft.AspNetCore.Cors;
+using AsapSystems.Task.Services;
 
 namespace AsapSystems.Task.Controllers
 {
     [Produces("application/json")]
     [Route("api/Addresses")]
-    
+
     public class AddressesController : Controller
     {
-        private readonly Context _context;
+        private readonly IAddressesService _addressService;
 
-        public AddressesController(Context context)
+        public AddressesController(IAddressesService addressService)
         {
-            _context = context;
+            _addressService = addressService;
         }
 
         // GET: api/Addresses
         [HttpGet]
-        public IEnumerable<Address> GetAddresses()
+        public async Task<IEnumerable<Address>> GetAddresses()
         {
-            return _context.Addresses;
+            return await _addressService.GetAddresses();
         }
 
         // GET: api/Addresses/5
@@ -38,7 +39,7 @@ namespace AsapSystems.Task.Controllers
                 return BadRequest(ModelState);
             }
 
-            var address = await _context.Addresses.SingleOrDefaultAsync(m => m.Id == id);
+            var address = await _addressService.GetAddress(id);
 
             if (address == null)
             {
@@ -62,23 +63,12 @@ namespace AsapSystems.Task.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(address).State = EntityState.Modified;
+            if (!await AddressExistsAsync(id))
+            {
+                return NotFound();
+            }
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!AddressExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            await _addressService.PutAddress(address);
 
             return NoContent();
         }
@@ -92,8 +82,7 @@ namespace AsapSystems.Task.Controllers
                 return BadRequest(ModelState);
             }
 
-            _context.Addresses.Add(address);
-            await _context.SaveChangesAsync();
+            await _addressService.PostAddress(address);
 
             return CreatedAtAction("GetAddress", new { id = address.Id }, address);
         }
@@ -107,21 +96,23 @@ namespace AsapSystems.Task.Controllers
                 return BadRequest(ModelState);
             }
 
-            var address = await _context.Addresses.SingleOrDefaultAsync(m => m.Id == id);
+            var address = await _addressService.DeleteAddress(id);
             if (address == null)
             {
                 return NotFound();
             }
 
-            _context.Addresses.Remove(address);
-            await _context.SaveChangesAsync();
-
             return Ok(address);
         }
 
-        private bool AddressExists(int id)
+        private async Task<bool> AddressExistsAsync(int id)
         {
-            return _context.Addresses.Any(e => e.Id == id);
+            var address = await _addressService.GetAddress(id);
+
+            if (address != null)
+                return true;
+
+            return false;
         }
     }
 }

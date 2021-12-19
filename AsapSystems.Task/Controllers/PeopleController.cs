@@ -7,26 +7,27 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using AsapSystems.Task.Models;
 using Microsoft.AspNetCore.Cors;
+using AsapSystems.Task.Services;
 
 namespace AsapSystems.Task.Controllers
 {
     [Produces("application/json")]
     [Route("api/People")]
-   
+
     public class PeopleController : Controller
     {
-        private readonly Context _context;
+        private readonly IPeopleService _peopleServices;
 
-        public PeopleController(Context context)
+        public PeopleController(IPeopleService peopleServices)
         {
-            _context = context;
+            _peopleServices = peopleServices;
         }
 
         // GET: api/People
         [HttpGet]
-        public IEnumerable<Person> GetPeople()
+        public async Task<IEnumerable<Person>> GetPeople()
         {
-            return _context.People.AsNoTracking().Include(c=>c.Address);
+            return await _peopleServices.GetPeople();
         }
 
         // GET: api/People/5
@@ -38,7 +39,7 @@ namespace AsapSystems.Task.Controllers
                 return BadRequest(ModelState);
             }
 
-            var person = await _context.People.SingleOrDefaultAsync(m => m.Id == id);
+            var person = await _peopleServices.GetPerson(id);
 
             if (person == null)
             {
@@ -61,24 +62,13 @@ namespace AsapSystems.Task.Controllers
             {
                 return BadRequest();
             }
+            await _peopleServices.PutPerson(person);
 
-            _context.Entry(person).State = EntityState.Modified;
+            if (!await PersonExistsAsync(id))
+            {
+                return NotFound();
+            }
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!PersonExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
 
             return NoContent();
         }
@@ -92,8 +82,7 @@ namespace AsapSystems.Task.Controllers
                 return BadRequest(ModelState);
             }
 
-            _context.People.Add(person);
-            await _context.SaveChangesAsync();
+            await _peopleServices.PostPerson(person);
 
             return CreatedAtAction("GetPerson", new { id = person.Id }, person);
         }
@@ -107,21 +96,24 @@ namespace AsapSystems.Task.Controllers
                 return BadRequest(ModelState);
             }
 
-            var person = await _context.People.SingleOrDefaultAsync(m => m.Id == id);
+            var person = await _peopleServices.DeletePersonAsync(id);
+
             if (person == null)
             {
                 return NotFound();
             }
 
-            _context.People.Remove(person);
-            await _context.SaveChangesAsync();
-
             return Ok(person);
         }
 
-        private bool PersonExists(int id)
+        private async Task<bool> PersonExistsAsync(int id)
         {
-            return _context.People.Any(e => e.Id == id);
+            var person = await _peopleServices.GetPerson(id);
+
+            if (person != null)
+                return true;
+
+            return false;
         }
     }
 }
