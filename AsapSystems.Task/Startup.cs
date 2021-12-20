@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AsapSystems.Task.Models;
+using AsapSystems.Task.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -40,6 +41,8 @@ namespace AsapSystems.Task
 
             services.AddMvc().AddJsonOptions(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
             services.AddDbContext<Context>(optionns => optionns.UseSqlServer(Configuration.GetConnectionString("DevConnection")));
+            services.AddScoped<IPeopleService, PeopleService>();
+            services.AddScoped<IAddressesService, AddressesService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
