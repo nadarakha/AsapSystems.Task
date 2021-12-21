@@ -1,0 +1,34 @@
+<form [formGroup]="putForm" (ngSubmit)="onSubmit(putForm)">
+    <input type="hidden" formControlName="id">
+    <div class="form-group col-5">
+        <label>Age</label>
+        <input type="text" formControlName="age" class="form-control"
+            [ngClass]="{ 'is-invalid': submitted && f.age.errors }" />
+        <div *ngIf="submitted && f.age.errors" class="invalid-feedback">
+            <div *ngIf="f.age.errors.required">Age is required</div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Name</label>
+        <input type="text" formControlName="name" class="form-control"
+            [ngClass]="{ 'is-invalid': submitted && f.name.errors }" />
+        <div *ngIf="submitted && f.name.errors" class="invalid-feedback">
+            <div *ngIf="f.name.errors.required">Name is required</div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="addressId">Address</label>
+        <select formControlName="addressId" class="form-control">
+
+            <option *ngFor="let address of addressList" [value]=address.id>
+                {{address.name}}
+            </option>
+        </select>
+    </div>
+
+    <div class="text-center">
+        <button class="btn btn-primary mr-1">Save</button>
+        <button class="btn btn-secondary" type="reset" (click)="onReset()">Cancel</button>
+    </div>
+</form>

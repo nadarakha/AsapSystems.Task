@@ -1,0 +1,17 @@
+<form [formGroup]="putForm" (ngSubmit)="onSubmit(putForm)">
+    <input type="hidden" formControlName="id">
+
+    <div class="form-group">
+        <label>Name</label>
+        <input type="text" formControlName="name" class="form-control"
+            [ngClass]="{ 'is-invalid': submitted && f.name.errors }" />
+        <div *ngIf="submitted && f.name.errors" class="invalid-feedback">
+            <div *ngIf="f.name.errors.required">Name is required</div>
+        </div>
+    </div>
+
+    <div class="text-center">
+        <button class="btn btn-primary mr-1">Save</button>
+        <button class="btn btn-secondary" type="reset" (click)="onReset()">Cancel</button>
+    </div>
+</form>

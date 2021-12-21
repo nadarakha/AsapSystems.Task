@@ -1,0 +1,27 @@
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <h3>Address</h3>
+    </div>
+    <div class="col text-right">
+      <a href="#" routerLink="/Addresses/PutAddress" class="btn btn-success btn-sm">Create New</a>
+    </div>
+  </div>
+  <br />
+  <table class="table table-bordered table-sm">
+    <tr>
+      <th>Id</th>
+      <th>Name</th>
+      <th></th>
+    </tr>
+
+    <tr *ngFor="let item of addressesList">
+      <td>{{item.id}}</td>
+      <td>{{item.name }}</td>
+      <td class="text-right">
+        <a href="#" [routerLink]="['/Addresses/PutAddress/', item.id]" class="btn btn-primary btn-sm">Edit</a>
+        <button type="button" (click)="deleteAddress(item.id)" class="btn btn-danger btn-sm">Delete</button>
+      </td>
+    </tr>
+  </table>
+</div>
